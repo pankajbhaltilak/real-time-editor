@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Collaborative Editor</title>
+    <script>
+        const docId = '{{ doc_id }}';
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/doc/' + docId + '/');
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            document.getElementById('editor').value = data.content;
+        };
+
+        function sendUpdate() {
+            const text = document.getElementById('editor').value;
+            socket.send(JSON.stringify({ 'content': text }));
+        }
+    </script>
+</head>
+<body>
+    <h2>Editing: {{ document.title }}</h2>
+    <textarea id="editor" oninput="sendUpdate()" rows="20" cols="100">{{ document.content }}</textarea>
+</body>
+</html>
