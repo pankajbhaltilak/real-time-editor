@@ -21,4 +21,37 @@
     <h2>Editing: {{ document.title }}</h2>
     <textarea id="editor" oninput="sendUpdate()" rows="20" cols="100">{{ document.content }}</textarea>
 </body>
+<div id="grammar-results" style="margin-top: 1em;"></div>
+
+<script>
+let grammarTimeout = null;
+
+function sendUpdate() {
+    const text = document.getElementById('editor').value;
+    socket.send(JSON.stringify({ 'content': text }));
+
+    clearTimeout(grammarTimeout);
+    grammarTimeout = setTimeout(() => checkGrammar(text), 1000);
+}
+
+function checkGrammar(text) {
+    fetch("{% url 'grammar_check' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: new URLSearchParams({ 'text': text })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById("grammar-results");
+        resultDiv.innerHTML = "";
+        data.suggestions.forEach(s => {
+            resultDiv.innerHTML += `<p><strong>Suggestion:</strong> ${s.message}<br><strong>Fix:</strong> ${s.replacements.join(', ')}</p>`;
+        });
+    });
+}
+</script>
+
 </html>

@@ -1,0 +1,26 @@
+<!-- templates/editor/dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ user.username }}</h2>
+
+    <a href="{% url 'create_document' %}">+ Create New Document</a>
+
+    <h3>Your Documents:</h3>
+    <ul>
+        {% for doc in documents %}
+            <li>
+                <a href="{% url 'document_editor' doc.id %}">{{ doc.title }}</a>
+                (Last updated: {{ doc.updated_at }})
+            </li>
+        {% empty %}
+            <li>No documents found. Click above to create one.</li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+</body>
+</html>
