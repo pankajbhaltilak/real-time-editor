@@ -18,6 +18,7 @@
     </script>
 </head>
 <body>
+    <div id="active-users" style="margin: 10px 0; font-weight: bold;"></div>
     <h2>Editing: {{ document.title }}</h2>
     <textarea id="editor" oninput="sendUpdate()" rows="20" cols="100">{{ document.content }}</textarea>
 </body>
@@ -26,9 +27,27 @@
 <script>
 let grammarTimeout = null;
 
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+
+    if (data.type === 'users_update') {
+        const display = data.users.length > 0
+            ? "Currently editing: " + data.users.join(', ')
+            : "No other active editors";
+        document.getElementById('active-users').textContent = display;
+    } else if (data.content !== undefined) {
+        const editor = document.getElementById('editor');
+        if (editor !== document.activeElement) {
+            editor.value = data.content;
+        }
+    }
+};
+
 function sendUpdate() {
     const text = document.getElementById('editor').value;
-    socket.send(JSON.stringify({ 'content': text }));
+    const payload = JSON.stringify({ content: text });
+
+    socket.send(payload);
 
     clearTimeout(grammarTimeout);
     grammarTimeout = setTimeout(() => checkGrammar(text), 1000);
